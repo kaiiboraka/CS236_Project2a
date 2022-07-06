@@ -1,0 +1,21 @@
+#pragma once
+
+#include "FSA_Comma.h"
+#include "FSA_Period.h"
+#include "FSA_Question.h"
+#include "FSA_Paren_Left.h"
+#include "FSA_Paren_Right.h"
+#include "FSA_Colon.h"
+#include "FSA_ColonDash.h"
+#include "FSA_Multiply.h"
+#include "FSA_Add.h"
+#include "FSA_Schemes.h"
+#include "FSA_Facts.h"
+#include "FSA_Rules.h"
+#include "FSA_Queries.h"
+#include "FSA_ID.h"
+#include "FSA_String.h"
+#include "FSA_Comment.h"
+#include "FSA_EOF.h"
+#include "FSA_Undefined.h"
+
