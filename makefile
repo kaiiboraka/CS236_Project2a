@@ -16,9 +16,15 @@ $(buckets):
 	for number in ${numbers_$@} ; \
 	do \
 		echo "Running input $$number" ; \
-		./lab$(NUM) $(tests)/$(NUM)-$@/input$$number.txt > $(tests)/out.txt ; \
+		./project$(NUM) $(tests)/$(NUM)-$@/input$$number.txt > $(tests)/out.txt ; \
 		diff -w $(tests)/$(NUM)-$@/answer$$number.txt $(tests)/out.txt || (echo "diff failed on test $$number \n") ; \
 	done \
 
 compile:
-	g++ -Wall -Werror -std=c++17 -g *.cpp -o lab$(NUM)
+	g++ -Wall -Werror -std=c++17 -g *.cpp -o project$(NUM)
+
+quick:
+	g++ *.cpp -o project$(NUM)
+
+mine: quick
+	make

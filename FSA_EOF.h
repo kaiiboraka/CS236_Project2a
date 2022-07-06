@@ -4,7 +4,15 @@
 
 class FSA_EOF : public Automaton
 {
-	void s0() override;
+	void s0() override
+	{
+		if (EndOfFile())
+		{
+			numCharRead++;
+			currCharIndex++;
+			return;
+		}
+	}
 
 public:
 	FSA_EOF()
@@ -12,13 +20,3 @@ public:
 		type = END_OF_FILE;
 	}
 };
-
-void FSA_EOF::s0()
-{
-	if (EndOfFile())
-	{
-		numCharRead++;
-		currCharIndex++;
-		return;
-	}
-}
