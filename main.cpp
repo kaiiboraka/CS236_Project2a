@@ -4,40 +4,48 @@
 
 void TryParse(const vector<Token>& tokens, ostream& os);
 
-string ReadFileIntoString(const string& path);
+string TryReadFile(const string& path);
+
+string TryReadArgs(const string& pass_path, const string& argv);
 
 int main(int argc, char* argv[])
 {
-	const string cmake_path = "../input.txt";
-	Lexer lexer;
-	string input;
-	if (argc <= 1)
-	{
-		try
-		{
-			input = ReadFileIntoString(cmake_path);
-		}
-		catch (exception& e){}
-	}
-	else
-	{
-		ifstream ifs(argv[1]);
-		if (!ifs.is_open())
-		{
-			ifs.open("./Project2aPassOffCases/2-80/" + string(argv[1]));
-		}
-		string line;
-		while (getline(ifs, line))
-		{
-			input += line + '\n';
-		}
-	}
+	const string cmake_path = "cmake-build-debug/input.txt";
+	const string pass_path = "Project2aPassOffCases/2-80/";
 
+	string input = (argc <= 1) ?
+				   TryReadFile(cmake_path) :
+				   TryReadArgs(pass_path, argv[1]);
+
+	Lexer lexer;
 	vector<Token> tokens = lexer.Run(input);
 
 	TryParse(tokens, cout);
 
 	return 0;
+}
+
+string TryReadArgs(const string& pass_path, const string& argv)
+{
+	ifstream ifs(argv);
+	if (!ifs.is_open()) ifs.open(pass_path + argv);
+	string line, output;
+	while (getline(ifs, line)) output += line + '\n';
+	return output;
+}
+
+string TryReadFile(const string& path)
+{
+	string output;
+	try
+	{
+		output = Helper::ReadFileIntoString(path);
+	}
+	catch (exception& e)
+	{
+		cerr << e.what() << endl;
+	}
+	return output;
 }
 
 void TryParse(const vector<Token>& tokens, ostream& os)
@@ -54,16 +62,3 @@ void TryParse(const vector<Token>& tokens, ostream& os)
 	}
 }
 
-string ReadFileIntoString(const string& path)
-{
-	ifstream input_file(path);
-	stringstream buffer;
-	if (!input_file)
-	{
-		cerr << "Could not open the file - '"
-			 << path << "'" << endl;
-		exit(EXIT_FAILURE);
-	}
-	buffer << input_file.rdbuf();
-	return buffer.str();
-}

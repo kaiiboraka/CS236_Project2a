@@ -22,6 +22,21 @@ public:
 		return string() + upperFirst + lowerRest;
 	}
 
+	static string ReadFileIntoString(const string& path)
+	{
+		ifstream input_file(path);
+		stringstream buffer;
+		if (!input_file)
+		{
+			cerr << "Could not open the file - '"
+				 << path << "'" << endl;
+			exit(EXIT_FAILURE);
+		}
+		buffer << input_file.rdbuf();
+		return buffer.str();
+	}
+
+
 	template<class T>
 	static void Test(const string& message, T const& expected, T const& observed)
 	{

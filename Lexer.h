@@ -55,17 +55,6 @@ public:
 		return tokens;
 	}
 
-	void PrintTokensList()
-	{
-		ofstream ofs("../tokens.txt");
-		for(unsigned int i = 0; i < tokens.size(); i++)
-		{
-			ofs << right << setw(4) << i << ": ";
-			PrintToken(ofs, tokens.at(i));
-		}
-		ofs << "Total Tokens = " << tokens.size() << endl;
-	}
-
 	static void TrimWhitespace(string& input, unsigned int& lineNum)
 	{
 		while (isspace(input.front()) && !input.empty())

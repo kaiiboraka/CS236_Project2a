@@ -3,8 +3,8 @@
 /.idea
 /cmake-build-debug
 /WindowsEndlines
+/Project2aPassOffCases
 *.html
-qslab
 out_*
 *.pdf
 *.c

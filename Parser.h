@@ -11,80 +11,35 @@ using namespace Tokens;
 
 class Parser
 {
+	const unsigned int NEXT = 1;
+
 	vector<Token> tokens;
 	unsigned int currTokenIdx;
-	const unsigned int NEXT = 1;
-	vector<TokenType> steps =
-			{
-					SCHEMES,
-					FACTS,
-					RULES,
-					QUERIES,
-					END_OF_FILE
-			};
 	unsigned int step;
+	vector<TokenType> steps =
+		{
+			SCHEMES,
+			FACTS,
+			RULES,
+			QUERIES,
+			END_OF_FILE
+		};
 
 public:
-	explicit Parser(const vector<Token>& tokens) : tokens(tokens), currTokenIdx(0), step(0)
-	{};
+	explicit Parser(const vector<Token>& tokens);
 
-	void AdvanceToken()
-	{
-		currTokenIdx++;
-	}
+	[[nodiscard]] TokenType CurrTokenType();
 
-	void ThrowError()
-	{
-		if (currTokenIdx >= tokens.size()) throw tokens.at(tokens.size() - 1);
-		throw tokens.at(currTokenIdx);
-	}
+	void AdvanceToken();
 
-	[[nodiscard]] TokenType CurrTokenType()
-	{
-		if (currTokenIdx >= tokens.size()) return UNDEFINED;
-		return tokens.at(currTokenIdx).GetType();
-	}
+	void ThrowError();
 
-	string CurrTokenString()
-	{
-		if (currTokenIdx >= tokens.size()) return TokenNames[UNDEFINED];
-		return tokens.at(currTokenIdx).ToString();
-	}
+	void Match(TokenType expectedType);
 
-	string PrintTypeFromTokens(int offset = 0)
-	{
-		unsigned int idx = currTokenIdx + offset;
-		if (idx >= tokens.size()) return TokenNames[END_OF_FILE];
-		return to_string(idx) + ": " + TokenNames[tokens.at(idx).GetType()];
-	}
+	void CheckForComments();
 
-	void Match(TokenType expectedType)
-	{
-		if (CurrTokenType() == expectedType)
-		{
-			AdvanceToken();
-		}
-		else
-		{
+	void Run();
 
-			ThrowError();
-		}
-	}
-
-	void CheckForComments()
-	{
-		while (CurrTokenType() == COMMENT)
-		{
-			AdvanceToken();
-		}
-	}
-
-	void Run()
-	{
-		DatalogProgram();
-	}
-
-//private:
 	/*
 	datalogProgram	->	SCHEMES COLON scheme schemeList FACTS COLON factList
 	 					RULES COLON ruleList QUERIES COLON query queryList EOF
@@ -109,228 +64,37 @@ public:
 	parameter		->	STRING | ID
  	*/
 
+	void DatalogProgram();
 
-	// datalogProgram -> SCHEMES COLON scheme schemeList FACTS COLON factList
-	//					 RULES COLON ruleList QUERIES COLON query queryList EOF
-	void DatalogProgram()
-	{
-		step = 0;
+	void Scheme();
 
-		CheckForComments();
-		Match(SCHEMES);
-		Match(COLON);
-		Scheme();
-		SchemeList();
-		step++;
+	void IDList();
 
-		Match(FACTS);
-		Match(COLON);
-		FactList();
-		step++;
+	void SchemeList();
 
-		Match(RULES);
-		Match(COLON);
-		RuleList();
-		step++;
+	void Fact();
 
-		Match(QUERIES);
-		Match(COLON);
-		Query();
-		QueryList();
-		step++;
+	void StringList();
 
-		Match(END_OF_FILE);
-	}
+	void FactList();
 
-	//	schemeList	->	scheme schemeList | lambda
-	//	factList	->	fact factList | lambda
-	//	ruleList	->	rule ruleList | lambda
-	//	queryList	->	query queryList | lambda
+	void Rule();
 
-	// schemeList -> scheme schemeList | lambda
-	void SchemeList()
-	{
-		CheckForComments();
-		if (CurrTokenType() == steps.at(NEXT + step)) return;
+	void HeadPredicate();
 
-		Scheme();
-		SchemeList();
-	}
+	void Predicate();
 
-	// factList -> fact factList | lambda
-	void FactList()
-	{
-		CheckForComments();
-		if (CurrTokenType() == steps.at(NEXT + step))
-		{ return; }
+	void Parameter();
 
-		Fact();
-		FactList();
-	}
+	void ParameterList();
 
-	// ruleList -> rule ruleList | lambda
-	void RuleList()
-	{
-		CheckForComments();
-		if (CurrTokenType() == steps.at(NEXT + step))
-		{ return; }
+	void PredicateList();
 
-		Rule();
-		RuleList();
-	}
+	void RuleList();
 
-	// queryList -> query queryList | lambda
-	void QueryList()
-	{
-		CheckForComments();
-		if (CurrTokenType() == steps.at(NEXT + step))
-		{ return; }
+	void Query();
 
-		Query();
-		QueryList();
-	}
-
-	//	scheme   	-> 	ID LEFT_PAREN ID idList RIGHT_PAREN
-	//	fact    	->	ID LEFT_PAREN STRING stringList RIGHT_PAREN PERIOD
-	//	rule    	->	headPredicate COLON_DASH predicate predicateList PERIOD
-	//	query	    ->  predicate Q_MARK
-
-	// scheme -> ID LEFT_PAREN ID idList RIGHT_PAREN
-	void Scheme()
-	{
-		CheckForComments();
-
-		Match(ID);
-		Match(LEFT_PAREN);
-		Match(ID);
-		IDList();
-		Match(RIGHT_PAREN);
-	}
-
-	// fact -> ID LEFT_PAREN STRING stringList RIGHT_PAREN PERIOD
-	void Fact()
-	{
-		CheckForComments();
-
-		Match(ID);
-		Match(LEFT_PAREN);
-		Match(STRING);
-		StringList();
-		Match(RIGHT_PAREN);
-		Match(PERIOD);
-	}
-
-	// rule -> headPredicate COLON_DASH predicate predicateList PERIOD
-	void Rule()
-	{
-		CheckForComments();
-
-		HeadPredicate();
-		Match(COLON_DASH);
-		Predicate();
-		PredicateList();
-		Match(PERIOD);
-	}
-
-	//	query	    ->  predicate Q_MARK
-	void Query()
-	{
-		CheckForComments();
-
-		Predicate();
-		Match(Q_MARK);
-	}
-
-
-	//	headPredicate	->	ID LEFT_PAREN ID idList RIGHT_PAREN
-	//	predicate		->	ID LEFT_PAREN parameter parameterList RIGHT_PAREN
-
-	//	headPredicate	->	ID LEFT_PAREN ID idList RIGHT_PAREN
-	void HeadPredicate()
-	{
-		CheckForComments();
-		Match(ID);
-		Match(LEFT_PAREN);
-		Match(ID);
-		IDList();
-		Match(RIGHT_PAREN);
-	}
-
-	//	predicate		->	ID LEFT_PAREN parameter parameterList RIGHT_PAREN
-	void Predicate()
-	{
-		CheckForComments();
-
-		Match(ID);
-		Match(LEFT_PAREN);
-		Parameter();
-		ParameterList();
-		Match(RIGHT_PAREN);
-	}
-
-	//	predicateList	->	COMMA predicate predicateList | lambda
-	//	parameterList	-> 	COMMA parameter parameterList | lambda
-	//	stringList	-> 	COMMA STRING stringList | lambda
-	//	idList  	-> 	COMMA ID idList | lambda
-	//	parameter	->	STRING | ID
-	void PredicateList()
-	{
-		CheckForComments();
-		if (CurrTokenType() != COMMA) return;
-
-		Match(COMMA);
-		Predicate();
-		PredicateList();
-		// else do nothing, lambda case
-	}
-
-	void ParameterList()
-	{
-
-		CheckForComments();
-		if (CurrTokenType() != COMMA) return;
-
-		Match(COMMA);
-		Parameter();
-		ParameterList();
-
-		// else do nothing, lambda case
-	}
-
-	void Parameter()
-	{
-		CheckForComments();
-		switch (CurrTokenType())
-		{
-			case STRING: Match(STRING);
-				return;
-			case ID: Match(ID);
-				return;
-			default: return;
-		}
-	}
-
-	void StringList()
-	{
-		CheckForComments();
-		if (CurrTokenType() != COMMA) return;
-
-		Match(COMMA);
-		Match(STRING);
-		StringList();
-		// else do nothing, lambda case
-	}
-
-	void IDList()
-	{
-		CheckForComments();
-		if (CurrTokenType() != COMMA) return;
-
-		Match(COMMA);
-		Match(ID);
-		IDList();
-		// else do nothing, lambda case
-	}
+	void QueryList();
 
 };
 
